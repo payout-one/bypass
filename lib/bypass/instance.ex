@@ -187,6 +187,10 @@ defmodule Bypass.Instance do
     end
   end
 
+  def handle_info(:stop, state) do
+    {:stop, :normal, state}
+  end
+
   defp do_exit(%{adapter: adapter} = state) do
     updated_state =
       case state do
@@ -299,7 +303,7 @@ defmodule Bypass.Instance do
       if length(exit_callers) > 0 do
         {result, _updated_state} = do_exit(state)
         Enum.each(exit_callers, &(GenServer.reply(&1, result)))
-        GenServer.stop(:normal)
+        send(self(), :stop)
       end
 
       down_reset || state
